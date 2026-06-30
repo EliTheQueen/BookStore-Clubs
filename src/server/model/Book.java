@@ -1,6 +1,8 @@
 package server.model;
 
-public class Book {
+import java.io.Serializable;
+
+public class Book implements Serializable {
     private String title;
     private String author;
     private int pages;
@@ -31,54 +33,37 @@ public class Book {
     public String getTitle() {
         return title;
     }
-    public void setTitle(String title) {
-        this.title = title;
-    }
     public String getAuthor() {
         return author;
-    }
-    public void setAuthor(String author) {
-        this.author = author;
     }
     public int getPages() {
         return pages;
     }
-    public void setPages(int pages) {
-        this.pages = pages;
-    }
     public Genre getGenre() {
         return genre;
-    }
-    public void setGenre(Genre genre) {
-        this.genre = genre;
     }
     public int getYear() {
         return year;
     }
-    public void setYear(int year) {
-        this.year = year;
-    }
     public int getID() {
         return ID;
-    }
-    public void setID(int ID) {
-        this.ID = ID;
     }
     public double getPrice() {
         return price;
     }
-    public void setPrice(double price) {
-        this.price = price;
-    }
     @Override
     public String toString() {
         return
-                "ID: " + getID() + "/"
-                + " Title: " + getTitle() + "/"
-                + " Author: " + getAuthor() + "/"
-                + " Price: " + getPrice() + "/"
-                + " Total Pages: " + getPages() + "/"
-                + " Genre: " + getGenre() + "/"
+                "ID: " + getID() + " / "
+                + " Title: " + getTitle() + " / "
+                + " Author: " + getAuthor() + " / "
+                + " Price: " + getPrice() + " / "
+                + " Total Pages: " + getPages() + " / "
+                + " Genre: " + getGenre() + " / "
                 + " Publish Year: " + getYear();
+    }
+
+    public boolean isFaust() {
+        return title.equalsIgnoreCase("فاوست");
     }
 }
