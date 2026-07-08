@@ -1,24 +1,29 @@
-package server.core;
+package  server.core;
 
-import javax.sound.sampled.Port;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ServerMain {
-    private ServerSocket serverSocket;
-    private Port port;
 
-    public void start() throws Exception {
-        this.serverSocket = new ServerSocket();
-        System.out.println("Server started on port: " + this.serverSocket.getLocalPort());
+    private static final int PORT = 8082;
 
-        while(true){
-            Socket socket = this.serverSocket.accept();
-            ClientHandler clientHandler = new ClientHandler();
-            Thread thread = new Thread();
-            thread.start();
+    public static void main(String[] args) throws IOException {
+
+        ServerSocket serverSocket = new ServerSocket(PORT);
+
+        System.out.println("Server started on port " + PORT);
+
+        while (true) {
+
+            Socket socket = serverSocket.accept();
+
+            System.out.println("Client Connected : " + socket.getInetAddress());
+
+            ClientHandler handler = new ClientHandler(socket);
+
+            new Thread(handler).start();
         }
     }
+
 }
