@@ -9,6 +9,7 @@ import java.net.Socket;
 public class ClientHandler implements Runnable {
 
     private final Socket socket;
+    private final CommandDispatcher dispatcher;
 
     private BufferedReader reader;
 
@@ -17,6 +18,7 @@ public class ClientHandler implements Runnable {
     public ClientHandler(Socket socket) throws IOException {
 
         this.socket = socket;
+        this.dispatcher = new CommandDispatcher();
 
         reader = new BufferedReader(
                 new InputStreamReader(socket.getInputStream()));
@@ -35,10 +37,11 @@ public class ClientHandler implements Runnable {
 
             while ((line = reader.readLine()) != null) {
 
-                System.out.println(line);
+                System.out.println("Client says: " + line);
 
-                writer.println(line);
+                String response = dispatcher.dispatch(line);
 
+                writer.println(response);
             }
 
         } catch (IOException e) {
