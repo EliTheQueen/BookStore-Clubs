@@ -3,6 +3,7 @@ package server.auth;
 import common.Result;
 import server.model.User;
 import server.repository.UserRepository;
+import server.session.Session;
 import server.session.SessionManager;
 
 public class AuthService {
@@ -39,8 +40,34 @@ public class AuthService {
         return Result.success("Registration successful.");
     }
 
-    public Result login(String username, String passwordHash) {
+    public Result<Session> login(String username, String passwordHash) {
+
+        User user = userRepository.find(username);
+
+        if (user == null) {
+            return Result.error("User not found.");
+        }
+
+        if (!user.getPasswordHash().equals(passwordHash)) {
+            return Result.error("Wrong password.");
+        }
+
+        Session session = sessionManager.createSession(user);
+
+        return Result.success("Login successful.", session);
 
     }
 
+    public Result<Void> logout(String token) {
+
+        Session session = sessionManager.getSession(token);
+
+        if(session == null){
+            return Result.error("Invalid token.");
+        }
+
+        sessionManager.removeSession(token);
+
+        return Result.success("Logout successful.");
+    }
 }
