@@ -7,11 +7,11 @@ import java.util.Map;
 import java.util.Set;
 
 public class User implements Serializable {
-    private String username;
-    private String passwordHash;
-    private Wallet wallet;
-    private Map<Integer, LibraryItem>  library;
-    private Set<Integer> clubIds;
+    private final String username;
+    private final String passwordHash;
+    private final Wallet wallet;
+    private final Map<Integer, LibraryItem>  library;
+    private final Set<Integer> clubIds;
 
     public User(String username, String passwordHash) {
         this.username = username;
@@ -21,11 +21,11 @@ public class User implements Serializable {
         this.clubIds = new HashSet<>();
     }
 
-    public boolean hasBook(int bookId){
+    public synchronized boolean hasBook(int bookId){
         return library.containsKey(bookId);
     }
 
-    public void addBook(Book book){
+    public synchronized void addBook(Book book){
         if (book == null) {
             //باید exception بدی که بفهمی کجا خراب نوشتی.
             throw new IllegalArgumentException("Book cannot be null");
@@ -38,15 +38,15 @@ public class User implements Serializable {
         library.put(book.getID(), libraryItem);
     }
 
-    public LibraryItem getLibraryItem(int bookId){
+    public synchronized LibraryItem getLibraryItem(int bookId){
         return library.get(bookId);
     }
 
-    public void joinClub(int clubId){
+    public synchronized void joinClub(int clubId){
         clubIds.add(clubId);
     }
 
-    public void  leaveClub(int clubId){
+    public synchronized void  leaveClub(int clubId){
         clubIds.remove(clubId);
     }
 
