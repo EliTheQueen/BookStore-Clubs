@@ -12,11 +12,12 @@ public class BookStore {
     public BookStore() {
         books = new ArrayList<>();
         loadBooksFromJSON();
+        System.out.println("Loaded books: " + books.size());
     }
 
     private void loadBooksFromJSON() {
         try {
-            String json = Files.readString(Paths.get("books.json"));
+            String json = Files.readString(Paths.get("src", "books.json"));
 
             json = json.substring(1, json.length() - 1);
             String[] items = json.split("\\},\\s*\\{");

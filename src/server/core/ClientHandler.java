@@ -1,5 +1,10 @@
 package server.core;
 
+import common.JsonParser;
+import common.JsonWriter;
+import common.Request;
+import common.Result;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -19,44 +24,67 @@ public class ClientHandler implements Runnable {
     private final CommandDispatcher dispatcher;
 
     private BufferedReader reader;
-
     private PrintWriter writer;
 
     public ClientHandler(Socket socket, CommandDispatcher dispatcher) throws IOException {
 
         this.socket = socket;
-        this.dispatcher = new CommandDispatcher();
+        this.dispatcher = dispatcher;
 
-        reader = new BufferedReader(
-                new InputStreamReader(socket.getInputStream()));
+        reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-        writer = new PrintWriter(
-                socket.getOutputStream(), true);
+        writer = new PrintWriter(socket.getOutputStream(), true);
 
     }
 
     @Override
     public void run() {
-
         try {
-
             String line;
 
             while ((line = reader.readLine()) != null) {
 
                 System.out.println("Client says: " + line);
 
-                String response = dispatcher.dispatch(line);
+                Result<?> result;
+
+                try {
+                    Request request = JsonParser.parse(line);
+
+                    result = dispatcher.dispatch(request);
+                }
+                catch (RuntimeException e) {
+
+                    result = Result.error("Error: " + e.getMessage());
+                }
+
+                String response = JsonWriter.writeResult(result);
 
                 writer.println(response);
             }
-
-        } catch (IOException e) {
-
-            System.out.println("Client disconnected.");
-
         }
-
+        catch (IOException e)  {
+            System.out.println("Client disconnected: " + e.getMessage());
+        }
+        finally {
+            try {
+                socket.close();
+            } catch (IOException ioException) {
+            }
+        }
     }
 
+    //JSON String
+    //   ↓
+    //JsonParser.parse
+    //   ↓
+    //Request
+    //   ↓
+    //dispatcher.dispatch
+    //   ↓
+    //Result
+    //   ↓
+    //JsonWriter.writeResult
+    //   ↓
+    //JSON String
 }

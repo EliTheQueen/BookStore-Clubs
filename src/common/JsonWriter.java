@@ -42,4 +42,73 @@ public class JsonWriter {
 
         return json.toString();
     }
+
+    public static String writeResult(Result<?> result) {
+
+        StringBuilder json = new StringBuilder();
+
+        json.append("{");
+
+        json.append("\"status\":\"").append(result.isSuccess() ? "success" : "error").append("\",");
+
+        json.append("\"message\":\"").append(escape(result.getMessage())).append("\",");
+
+        json.append("\"data\":");
+
+        appendValue(json, result.getData());
+
+        json.append("}");
+
+        return json.toString();
+    }
+
+    private static void appendValue(StringBuilder json, Object value) {
+
+        if (value == null) {
+            json.append("null");
+            return;
+        }
+
+        if (value instanceof Number || value instanceof Boolean) {
+
+            json.append(value);
+            return;
+        }
+
+        if (value instanceof Iterable<?> iterable) {
+
+            json.append("[");
+
+            boolean first = true;
+
+            for (Object item : iterable) {
+
+                if (!first) {
+                    json.append(",");
+                }
+
+                appendValue(json, item);
+                first = false;
+            }
+
+            json.append("]");
+            return;
+        }
+
+        json.append("\"").append(escape(value.toString())).append("\"");
+    }
+
+    private static String escape(String value) {
+
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
+    }
 }

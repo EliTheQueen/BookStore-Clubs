@@ -40,22 +40,29 @@ public class AuthService {
         return Result.success("Registration successful.");
     }
 
-    public Result<Session> login(String username, String passwordHash) {
+    public Result<String> login(String username, String passwordHash) {
 
-        User user = userRepository.find(username);
+        if (username == null || username.isBlank()) {
+            return Result.error("Username cannot be empty.");
+        }
+
+        if (passwordHash == null || passwordHash.isBlank()) {
+            return Result.error("Password hash cannot be empty.");
+        }
+
+        User user = userRepository.find(username.trim());
 
         if (user == null) {
-            return Result.error("User not found.");
+            return Result.error("Invalid username or password.");
         }
 
         if (!user.getPasswordHash().equals(passwordHash)) {
-            return Result.error("Wrong password.");
+            return Result.error("Invalid username or password.");
         }
 
         Session session = sessionManager.createSession(user);
 
-        return Result.success("Login successful.", session);
-
+        return Result.success("Login successful.", session.getToken());
     }
 
     public Result<Void> logout(String token) {

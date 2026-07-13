@@ -3,10 +3,10 @@ package server.core;
 import common.Request;
 import common.Result;
 import server.auth.AuthService;
-import server.command.CommandHandler;
-import server.command.LoginCommand;
-import server.command.LogoutCommand;
-import server.command.RegisterCommand;
+import server.book.BookService;
+import server.command.*;
+import server.session.SessionManager;
+import server.wallet.WalletService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +15,11 @@ public class CommandDispatcher {
 
     private final Map<String, CommandHandler> commands;
 
-    public  CommandDispatcher(AuthService authService) {
+    public CommandDispatcher(
+            AuthService authService,
+            BookService bookService,
+            WalletService walletService,
+            SessionManager sessionManager) {
 
         commands = new HashMap<>();
 
@@ -24,17 +28,32 @@ public class CommandDispatcher {
         commands.put("login", new LoginCommand(authService));
 
         commands.put("logout", new LogoutCommand(authService));
+
+        commands.put("books_market_list", new BooksMarketCommand(bookService, sessionManager));
+
+        commands.put("book_buy", new BookBuyCommand(bookService, sessionManager));
+
+        commands.put("account_charge", new ChargeCommand(walletService, sessionManager));
+
+        commands.put("balance_show", new BalanceCommand(walletService, sessionManager));
     }
 
     public Result<?> dispatch(Request request) {
+
         if (request == null) {
-            return Result.error("Invalid request");
+            return Result.error("Invalid request.");
         }
 
-        CommandHandler commandHandler = commands.get(request.getCommand());
+        String command = request.getCommand();
+
+        if (command == null || command.isBlank()) {
+            return Result.error("Command is missing.");
+        }
+
+        CommandHandler commandHandler = commands.get(command);
 
         if (commandHandler == null) {
-            return Result.error("Unknown command");
+            return Result.error("Unknown command.");
         }
 
         return commandHandler.execute(request);

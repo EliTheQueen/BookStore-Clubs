@@ -1,8 +1,11 @@
 package  server.core;
 
 import server.auth.AuthService;
+import server.book.BookService;
+import server.model.BookStore;
 import server.repository.UserRepository;
 import server.session.SessionManager;
+import server.wallet.WalletService;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -14,23 +17,33 @@ public class ServerMain {
 
     public static void main(String[] args) throws IOException {
 
-        ServerSocket serverSocket = new ServerSocket(PORT);
+        UserRepository userRepository = new UserRepository();
 
-        System.out.println("Server started on port " + PORT);
+        SessionManager sessionManager = new SessionManager();
 
-        while (true) {
+        BookStore bookStore = new BookStore();
 
-            Socket socket = serverSocket.accept();
+        AuthService authService = new AuthService(userRepository, sessionManager);
 
-            System.out.println("Client Connected : " + socket.getInetAddress());
+        BookService bookService = new BookService(bookStore);
 
-            UserRepository repository = new UserRepository();
+        WalletService walletService = new WalletService();
 
-            SessionManager sessionManager = new SessionManager();
+        CommandDispatcher dispatcher = new CommandDispatcher(authService, bookService, walletService, sessionManager);
 
-            AuthService authService = new AuthService(repository, sessionManager);
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+            System.out.println("Server started on port " + PORT);
 
-            CommandDispatcher dispatcher = new CommandDispatcher(authService);
+            while (true) {
+                Socket socket = serverSocket.accept();
+
+                System.out.println("Client connected from " + socket.getInetAddress());
+
+                ClientHandler clientHandler = new ClientHandler(socket, dispatcher);
+
+                new Thread(clientHandler).start();
+            }
+        }
 
             //چرا Dispatcher را فقط یک بار ساختیم؟
             //اگر این کار را بکنی:
@@ -41,9 +54,7 @@ public class ServerMain {
             //لازم نیست.
             //Dispatcher هیچ Stateای ندارد.
             //یک نمونه کافی است.
-            ClientHandler handler = new ClientHandler(socket, dispatcher);
-            new Thread(handler).start();
-        }
+
     }
 
 }

@@ -12,6 +12,10 @@ public class JsonParser {
 
         int payloadIndex = json.indexOf("\"payload\"");
 
+        if (payloadIndex == -1) {
+            throw new IllegalArgumentException("Field 'payload' is missing.");
+        }
+
         String header = json.substring(0, payloadIndex);
 
         String payload = json.substring(payloadIndex);
@@ -81,8 +85,7 @@ public class JsonParser {
 
             String key = pair[0].replace("\"", "").trim();
 
-            String value =
-                    pair[1].replace("\"", "").trim();
+            String value = pair[1].replace("\"", "").trim();
 
             request.put(key, value);
 
