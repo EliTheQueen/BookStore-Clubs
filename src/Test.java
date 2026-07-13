@@ -1,19 +1,41 @@
-import common.JsonWriter;
-import common.Request;
+import server.model.User;
+import server.session.Session;
+import server.session.SessionManager;
 
 public class Test {
     public static void main(String[] args) {
-        Request request = new Request();
+        User user =
+                new User("ali", "hashed-password");
 
-        request.setCommand("login");
+        SessionManager sessionManager =
+                new SessionManager();
 
-        request.setToken("abc123");
+        Session session =
+                sessionManager.createSession(user);
 
-        request.put("username", "ali");
-        request.put("password", "123");
+        System.out.println(
+                sessionManager.getSession(
+                        session.getToken()
+                ).getUser().getUsername()
+        );
 
-        String json = JsonWriter.write(request);
+        System.out.println(
+                sessionManager.getSessionByUsername("ali")
+                        .getToken()
+        );
 
-        System.out.println(json);
+        sessionManager.removeSession(
+                session.getToken()
+        );
+
+        System.out.println(
+                sessionManager.getSession(
+                        session.getToken()
+                )
+        );
+
+        System.out.println(
+                sessionManager.getSessionByUsername("ali")
+        );
     }
 }

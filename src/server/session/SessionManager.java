@@ -8,61 +8,81 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class SessionManager {
 
-    /*
-    چرا HashMap نه؟
-    چون
-    Server
-    Multi Thread
-    است.
-    اگر ده Client همزمان Login کنند،
-    HashMap ممکن است خراب شود.
-    */
-    private final ConcurrentHashMap<String, Session> sessions;
+    private final ConcurrentHashMap<String, Session> tokenToSession;
+
+    private final ConcurrentHashMap<String, Session> usernameToSession;
 
     private final SecureRandom random;
 
     public SessionManager() {
-
-        sessions = new ConcurrentHashMap<>();
-
+        tokenToSession = new ConcurrentHashMap<>();
+        usernameToSession = new ConcurrentHashMap<>();
         random = new SecureRandom();
-
     }
 
     public Session createSession(User user) {
+
+        //هر کاربر فقط یک Session فعال دارد.
+        Session oldSession = usernameToSession.get(user.getUsername());
+
+        if (oldSession != null) {
+            removeSession(oldSession.getToken());
+        }
 
         String token = generateToken();
 
         Session session = new Session(user, token);
 
-        sessions.put(token, session);
+        tokenToSession.put(token, session);
+
+        usernameToSession.put(user.getUsername(), session);
 
         return session;
-
     }
 
     public Session getSession(String token) {
 
-        return sessions.get(token);
+        if (token == null || token.isBlank()) {
+            return null;
+        }
 
+        return tokenToSession.get(token);
+    }
+
+    public Session getSessionByUsername(String username) {
+
+        if (username == null || username.isBlank()) {
+            return null;
+        }
+
+        return usernameToSession.get(username);
+    }
+
+    public boolean isValid(String token) {
+        return getSession(token) != null;
     }
 
     public void removeSession(String token) {
 
-        sessions.remove(token);
+        if (token == null || token.isBlank()) {
+            return;
+        }
 
+        Session removedSession = tokenToSession.remove(token);
+
+        if (removedSession != null) {
+
+            //ممکن است Session جدید را هم پاک کنیم.
+            usernameToSession.remove(removedSession.getUser().getUsername(), removedSession);
+        }
     }
 
     private String generateToken() {
 
-        //256 bit
         byte[] bytes = new byte[32];
 
         random.nextBytes(bytes);
 
-        //تبدیل می‌کند به رشته.
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-
     }
-
 }

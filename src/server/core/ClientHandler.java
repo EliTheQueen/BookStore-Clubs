@@ -6,6 +6,13 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+//یعنی از این به بعد ClientHandler نقش Bridge بین شبکه و منطق برنامه را دارد:
+//از سوکت متن JSON را می‌خواند.
+//با JsonParser آن را به Request تبدیل می‌کند.
+//Request را به CommandDispatcher می‌دهد.
+//Result را از Dispatcher می‌گیرد.
+//آن را به JSON تبدیل می‌کند و روی سوکت می‌فرستد.
+//این تفکیک وظایف باعث می‌شود اگر فردا به جای TCP از WebSocket یا HTTP هم استفاده کنی، فقط لایه‌ی ارتباطی عوض شود و هیچ تغییری در CommandDispatcher یا AuthService لازم نباشد. این دقیقاً یکی از اصول مهم طراحی لایه‌ای است.
 public class ClientHandler implements Runnable {
 
     private final Socket socket;
@@ -15,7 +22,7 @@ public class ClientHandler implements Runnable {
 
     private PrintWriter writer;
 
-    public ClientHandler(Socket socket) throws IOException {
+    public ClientHandler(Socket socket, CommandDispatcher dispatcher) throws IOException {
 
         this.socket = socket;
         this.dispatcher = new CommandDispatcher();
