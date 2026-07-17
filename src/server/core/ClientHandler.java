@@ -25,6 +25,7 @@ public class ClientHandler implements Runnable {
 
     private BufferedReader reader;
     private PrintWriter writer;
+    private String lastToken;
 
     public ClientHandler(Socket socket, CommandDispatcher dispatcher) throws IOException {
 
@@ -50,6 +51,9 @@ public class ClientHandler implements Runnable {
 
                 try {
                     Request request = JsonParser.parse(line);
+                    if (request.getToken() != null && !request.getToken().isBlank()) {
+                        lastToken = request.getToken();
+                    }
 
                     result = dispatcher.dispatch(request);
                 }
@@ -67,6 +71,7 @@ public class ClientHandler implements Runnable {
             System.out.println("Client disconnected: " + e.getMessage());
         }
         finally {
+            dispatcher.cleanupDisconnectedClient(lastToken);
             try {
                 socket.close();
             } catch (IOException ioException) {

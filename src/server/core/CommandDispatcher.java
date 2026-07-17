@@ -102,7 +102,19 @@ public class CommandDispatcher {
             return Result.error("Unknown command.");
         }
 
-        return commandHandler.execute(request);
+        String usernameBeforeCommand = null;
+        Session session = sessionManager.getSession(request.getToken());
+        if (session != null) {
+            usernameBeforeCommand = session.getUser().getUsername();
+        }
+
+        Result<?> result = commandHandler.execute(request);
+
+        if ("logout".equals(command) && result.isSuccess() && usernameBeforeCommand != null) {
+            notificationService.unregister(usernameBeforeCommand);
+        }
+
+        return result;
     }
 
     public boolean registerUdpNotificationClient(String token, InetAddress address, int port) {
@@ -112,5 +124,14 @@ public class CommandDispatcher {
             return true;
         }
         return false;
+    }
+
+    public void cleanupDisconnectedClient(String token) {
+        Session session = sessionManager.getSession(token);
+        if (session == null) {
+            return;
+        }
+        notificationService.unregister(session.getUser().getUsername());
+        sessionManager.removeSession(token);
     }
 }
