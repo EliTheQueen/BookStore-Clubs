@@ -4,6 +4,7 @@ import server.auth.AuthService;
 import server.backup.BackupService;
 import server.book.BookService;
 import server.club.ClubService;
+import server.database.DatabaseService;
 import server.fundraiser.FundraiserService;
 import server.lending.LendingService;
 import server.model.BookStore;
@@ -51,6 +52,12 @@ public class ServerMain {
         backupService.restoreIfExists();
         backupService.startScheduledBackup(5);
         Runtime.getRuntime().addShutdownHook(new Thread(backupService::shutdown));
+
+        DatabaseService databaseService = new DatabaseService(
+                "jdbc:sqlite:data/bookstore.db", userRepository, clubService);
+        databaseService.initialize();
+        databaseService.startScheduledSave(5);
+        Runtime.getRuntime().addShutdownHook(new Thread(databaseService::shutdown));
 
         CommandDispatcher dispatcher = new CommandDispatcher(
                 authService, bookService, progressService, clubService, fundraiserService,
