@@ -1,31 +1,44 @@
 package server.notif;
 
-import java.io.PrintWriter;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class NotificationService {
 
-    private final ConcurrentHashMap<String, PrintWriter> onlineUsers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, UdpClient> udpClients = new ConcurrentHashMap<>();
 
-    public void register(String username, PrintWriter writer) {
-        if (username == null || username.isBlank() || writer == null) {
+    public void registerUdp(String username, InetAddress address, int port) {
+        if (username == null || username.isBlank() || address == null || port <= 0) {
             return;
         }
-        onlineUsers.put(username, writer);
+        udpClients.put(username, new UdpClient(address, port));
     }
 
     public void unregister(String username) {
         if (username == null || username.isBlank()) {
             return;
         }
-        onlineUsers.remove(username);
+        udpClients.remove(username);
     }
 
     public void sendToUser(String username, String message) {
-        PrintWriter writer = onlineUsers.get(username);
-        if (writer != null) {
-            writer.println(notificationJson(message));
+        UdpClient client = udpClients.get(username);
+        if (client == null) {
+            return;
+        }
+
+        byte[] bytes = notificationJson(message).getBytes(StandardCharsets.UTF_8);
+        DatagramPacket packet = new DatagramPacket(bytes, bytes.length, client.address, client.port);
+
+        try (DatagramSocket socket = new DatagramSocket()) {
+            socket.send(packet);
+        } catch (IOException exception) {
+            System.out.println("Notification failed for " + username + ": " + exception.getMessage());
         }
     }
 
@@ -44,5 +57,15 @@ public class NotificationService {
                 .replace("\"", "\\\"")
                 .replace("\n", "\\n");
         return "{\"status\":\"notification\",\"message\":\"" + safe + "\",\"data\":null}";
+    }
+
+    private static class UdpClient {
+        private final InetAddress address;
+        private final int port;
+
+        private UdpClient(InetAddress address, int port) {
+            this.address = address;
+            this.port = port;
+        }
     }
 }

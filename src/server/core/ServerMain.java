@@ -63,7 +63,7 @@ public class ServerMain {
                 authService, bookService, progressService, clubService, fundraiserService,
                 lendingService, walletService, sessionManager, notificationService);
 
-        Thread udpThread = new Thread(new UdpStatusServer(UDP_PORT));
+        Thread udpThread = new Thread(new UdpStatusServer(UDP_PORT, dispatcher));
         udpThread.setDaemon(true);
         udpThread.start();
 

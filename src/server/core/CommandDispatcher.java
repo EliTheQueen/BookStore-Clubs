@@ -15,7 +15,7 @@ import server.session.Session;
 import server.session.SessionManager;
 import server.wallet.WalletService;
 
-import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -105,13 +105,12 @@ public class CommandDispatcher {
         return commandHandler.execute(request);
     }
 
-    public void registerOnlineClient(Request request, PrintWriter writer) {
-        if (request == null) {
-            return;
-        }
-        Session session = sessionManager.getSession(request.getToken());
+    public boolean registerUdpNotificationClient(String token, InetAddress address, int port) {
+        Session session = sessionManager.getSession(token);
         if (session != null) {
-            notificationService.register(session.getUser().getUsername(), writer);
+            notificationService.registerUdp(session.getUser().getUsername(), address, port);
+            return true;
         }
+        return false;
     }
 }

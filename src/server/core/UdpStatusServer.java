@@ -8,9 +8,11 @@ import java.nio.charset.StandardCharsets;
 public class UdpStatusServer implements Runnable {
 
     private final int port;
+    private final CommandDispatcher dispatcher;
 
-    public UdpStatusServer(int port) {
+    public UdpStatusServer(int port, CommandDispatcher dispatcher) {
         this.port = port;
+        this.dispatcher = dispatcher;
     }
 
     @Override
@@ -27,6 +29,8 @@ public class UdpStatusServer implements Runnable {
                 String answer;
                 if ("ping".equalsIgnoreCase(message) || "status".equalsIgnoreCase(message)) {
                     answer = "server is running";
+                } else if (message.startsWith("register_notification:")) {
+                    answer = registerNotification(message, packet);
                 } else {
                     answer = "unknown udp message";
                 }
@@ -41,6 +45,24 @@ public class UdpStatusServer implements Runnable {
             }
         } catch (IOException exception) {
             System.out.println("UDP server stopped: " + exception.getMessage());
+        }
+    }
+
+    private String registerNotification(String message, DatagramPacket packet) {
+        String[] parts = message.split(":");
+        if (parts.length != 3) {
+            return "invalid notification registration";
+        }
+
+        try {
+            int clientPort = Integer.parseInt(parts[2]);
+            boolean registered = dispatcher.registerUdpNotificationClient(parts[1], packet.getAddress(), clientPort);
+            if (registered) {
+                return "notification listener registered";
+            }
+            return "invalid token";
+        } catch (NumberFormatException exception) {
+            return "invalid udp port";
         }
     }
 }

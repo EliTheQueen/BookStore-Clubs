@@ -22,8 +22,14 @@ public class ClientMain {
 
     private static volatile boolean running = true;
     private static volatile String token;
+    private static DatagramSocket notificationSocket;
 
     public static void main(String[] args) throws IOException {
+        notificationSocket = new DatagramSocket();
+        Thread udpListener = new Thread(ClientMain::listenUdpNotifications);
+        udpListener.setDaemon(true);
+        udpListener.start();
+
         try (Socket socket = new Socket(HOST, TCP_PORT);
              BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
@@ -70,6 +76,7 @@ public class ClientMain {
                 if (foundToken != null) {
                     token = foundToken;
                     System.out.println("Token saved.");
+                    registerUdpNotifications();
                 }
             }
         } catch (IOException exception) {
@@ -154,6 +161,35 @@ public class ClientMain {
             DatagramPacket response = new DatagramPacket(buffer, buffer.length);
             socket.receive(response);
             return new String(response.getData(), 0, response.getLength(), StandardCharsets.UTF_8);
+        }
+    }
+
+    private static void listenUdpNotifications() {
+        byte[] buffer = new byte[4096];
+        while (running) {
+            try {
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+                notificationSocket.receive(packet);
+                String message = new String(packet.getData(), 0, packet.getLength(), StandardCharsets.UTF_8);
+                System.out.println(message);
+            } catch (IOException exception) {
+                if (running) {
+                    System.out.println("UDP notification listener stopped.");
+                }
+                return;
+            }
+        }
+    }
+
+    private static void registerUdpNotifications() {
+        if (token == null || notificationSocket == null) {
+            return;
+        }
+        try {
+            String message = "register_notification:" + token + ":" + notificationSocket.getLocalPort();
+            System.out.println(sendUdp(message));
+        } catch (IOException exception) {
+            System.out.println("Could not register UDP notifications.");
         }
     }
 
