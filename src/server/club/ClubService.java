@@ -174,6 +174,20 @@ public class ClubService {
         return new ArrayList<>(clubs.values());
     }
 
+    public void replaceAll(List<Club> restoredClubs) {
+        clubs.clear();
+        int maxId = 0;
+        if (restoredClubs != null) {
+            for (Club club : restoredClubs) {
+                clubs.put(club.getId(), club);
+                if (club.getId() > maxId) {
+                    maxId = club.getId();
+                }
+            }
+        }
+        nextClubId.set(maxId + 1);
+    }
+
     private Result<Void> answerJoin(User owner, int clubId, String username, boolean accepted) {
         if (owner == null) {
             return Result.error("Unauthorized.");

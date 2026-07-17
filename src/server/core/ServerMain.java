@@ -1,6 +1,7 @@
 package  server.core;
 
 import server.auth.AuthService;
+import server.backup.BackupService;
 import server.book.BookService;
 import server.club.ClubService;
 import server.fundraiser.FundraiserService;
@@ -14,6 +15,7 @@ import server.wallet.WalletService;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Paths;
 
 public class ServerMain {
 
@@ -40,6 +42,12 @@ public class ServerMain {
 
         FundraiserService fundraiserService = new FundraiserService(
                 clubService, bookService, userRepository, notificationService);
+
+        BackupService backupService = new BackupService(
+                userRepository, clubService, Paths.get("data", "backup.ser"));
+        backupService.restoreIfExists();
+        backupService.startScheduledBackup(5);
+        Runtime.getRuntime().addShutdownHook(new Thread(backupService::shutdown));
 
         CommandDispatcher dispatcher = new CommandDispatcher(
                 authService, bookService, progressService, clubService, fundraiserService,

@@ -2,11 +2,12 @@ package server.repository;
 
 import server.model.User;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class UserRepository {
+public class UserRepository implements Serializable {
 
     private final ConcurrentHashMap<String, User> users;
 
@@ -46,6 +47,16 @@ public class UserRepository {
 
     public List<User> findAll() {
         return new ArrayList<>(users.values());
+    }
+
+    public void replaceAll(List<User> restoredUsers) {
+        users.clear();
+        if (restoredUsers == null) {
+            return;
+        }
+        for (User user : restoredUsers) {
+            save(user);
+        }
     }
 
 }
