@@ -7,6 +7,7 @@ public class Session {
     private User user;
 
     private String token;
+    private Integer viewedClubId;
 
     public Session(User user, String token) {
 
@@ -28,6 +29,14 @@ public class Session {
 
     public String getToken() {
         return token;
+    }
+
+    public Integer getViewedClubId() {
+        return viewedClubId;
+    }
+
+    public void setViewedClubId(Integer viewedClubId) {
+        this.viewedClubId = viewedClubId;
     }
 
 }
