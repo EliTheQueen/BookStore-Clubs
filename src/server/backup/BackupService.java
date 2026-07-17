@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.file.Files;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -66,10 +67,18 @@ public class BackupService {
                     outputStream.writeObject(state);
                 }
 
-                Files.move(tempPath, backupPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+                replaceBackupFile(tempPath);
             } catch (IOException exception) {
                 System.out.println("Backup failed: " + exception.getMessage());
             }
+        }
+    }
+
+    private void replaceBackupFile(Path tempPath) throws IOException {
+        try {
+            Files.move(tempPath, backupPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException exception) {
+            Files.move(tempPath, backupPath, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
