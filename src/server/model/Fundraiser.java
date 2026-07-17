@@ -25,7 +25,7 @@ public class Fundraiser implements Serializable {
         this.status = FundraiserStatus.fundraiserStatus.ACTIVE;
     }
 
-    public synchronized double donate(String username, int amount, Wallet wallet) {
+    public synchronized double donate(String username, double amount, Wallet wallet) {
         if (!status.equals(FundraiserStatus.fundraiserStatus.ACTIVE)) {
             throw new IllegalArgumentException("Fundraiser is not active");
         }
@@ -75,6 +75,11 @@ public class Fundraiser implements Serializable {
         this.status = FundraiserStatus.fundraiserStatus.COMPLETED;
     }
 
+    public synchronized void markCompleted() {
+        this.currentAmount = targetAmount;
+        complete();
+    }
+
     public int getId() {
         return id;
     }
@@ -92,5 +97,19 @@ public class Fundraiser implements Serializable {
     }
     public List<Donation> getDonations() {
         return new ArrayList<>(donations);
+    }
+
+    public FundraiserStatus.fundraiserStatus getStatus() {
+        return status;
+    }
+
+    @Override
+    public String toString() {
+        return "ID: " + id
+                + " / Club ID: " + clubId
+                + " / Book ID: " + bookId
+                + " / Current: " + currentAmount
+                + " / Target: " + targetAmount
+                + " / Status: " + status;
     }
 }

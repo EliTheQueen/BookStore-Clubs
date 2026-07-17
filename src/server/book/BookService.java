@@ -52,7 +52,7 @@ public class BookService {
         return Result.success("Book purchased.");
     }
 
-    private Book findBookById(int bookId) {
+    public Book findBookById(int bookId) {
 
         for (Book book : bookStore.getBooks()) {
             if (book.getID() == bookId) {

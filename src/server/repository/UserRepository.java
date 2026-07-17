@@ -2,6 +2,8 @@ package server.repository;
 
 import server.model.User;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class UserRepository {
@@ -40,6 +42,10 @@ public class UserRepository {
 
     public boolean saveIfAbsent(User user) {
         return users.putIfAbsent(user.getUsername(), user) == null;
+    }
+
+    public List<User> findAll() {
+        return new ArrayList<>(users.values());
     }
 
 }

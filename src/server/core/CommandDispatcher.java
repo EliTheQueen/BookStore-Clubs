@@ -6,6 +6,7 @@ import server.auth.AuthService;
 import server.book.BookService;
 import server.club.ClubService;
 import server.command.*;
+import server.fundraiser.FundraiserService;
 import server.model.BookLibraryStatus;
 import server.progress.ProgressService;
 import server.session.SessionManager;
@@ -23,6 +24,7 @@ public class CommandDispatcher {
             BookService bookService,
             ProgressService progressService,
             ClubService clubService,
+            FundraiserService fundraiserService,
             WalletService walletService,
             SessionManager sessionManager) {
 
@@ -64,6 +66,9 @@ public class CommandDispatcher {
         commands.put("deny_join_request", new AnswerJoinRequestCommand(clubService, sessionManager, false));
         commands.put("list_club_members", new ListClubMembersCommand(clubService, sessionManager));
         commands.put("remove_member", new RemoveMemberCommand(clubService, sessionManager));
+        commands.put("create_fundraiser", new CreateFundraiserCommand(fundraiserService, sessionManager));
+        commands.put("view_fundraiser_progress", new ViewFundraiserProgressCommand(fundraiserService, sessionManager));
+        commands.put("donate", new DonateCommand(fundraiserService, sessionManager));
     }
 
     public Result<?> dispatch(Request request) {

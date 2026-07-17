@@ -3,6 +3,7 @@ package  server.core;
 import server.auth.AuthService;
 import server.book.BookService;
 import server.club.ClubService;
+import server.fundraiser.FundraiserService;
 import server.model.BookStore;
 import server.progress.ProgressService;
 import server.repository.UserRepository;
@@ -35,8 +36,10 @@ public class ServerMain {
 
         WalletService walletService = new WalletService();
 
+        FundraiserService fundraiserService = new FundraiserService(clubService, bookService, userRepository);
+
         CommandDispatcher dispatcher = new CommandDispatcher(
-                authService, bookService, progressService, clubService, walletService, sessionManager);
+                authService, bookService, progressService, clubService, fundraiserService, walletService, sessionManager);
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.println("Server started on port " + PORT);
