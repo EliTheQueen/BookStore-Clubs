@@ -5,6 +5,7 @@ import server.book.BookService;
 import server.club.ClubService;
 import server.fundraiser.FundraiserService;
 import server.model.BookStore;
+import server.notif.NotificationService;
 import server.progress.ProgressService;
 import server.repository.UserRepository;
 import server.session.SessionManager;
@@ -23,12 +24,13 @@ public class ServerMain {
         UserRepository userRepository = new UserRepository();
 
         SessionManager sessionManager = new SessionManager();
+        NotificationService notificationService = new NotificationService();
 
         BookStore bookStore = new BookStore();
 
         AuthService authService = new AuthService(userRepository, sessionManager);
 
-        ClubService clubService = new ClubService(userRepository);
+        ClubService clubService = new ClubService(userRepository, notificationService);
 
         BookService bookService = new BookService(bookStore);
 
@@ -36,10 +38,12 @@ public class ServerMain {
 
         WalletService walletService = new WalletService();
 
-        FundraiserService fundraiserService = new FundraiserService(clubService, bookService, userRepository);
+        FundraiserService fundraiserService = new FundraiserService(
+                clubService, bookService, userRepository, notificationService);
 
         CommandDispatcher dispatcher = new CommandDispatcher(
-                authService, bookService, progressService, clubService, fundraiserService, walletService, sessionManager);
+                authService, bookService, progressService, clubService, fundraiserService,
+                walletService, sessionManager, notificationService);
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.println("Server started on port " + PORT);

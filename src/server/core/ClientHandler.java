@@ -51,6 +51,8 @@ public class ClientHandler implements Runnable {
                 try {
                     Request request = JsonParser.parse(line);
 
+                    dispatcher.registerOnlineClient(request, writer);
+
                     result = dispatcher.dispatch(request);
                 }
                 catch (RuntimeException e) {

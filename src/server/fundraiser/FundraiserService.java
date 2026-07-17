@@ -8,6 +8,7 @@ import server.model.Club;
 import server.model.Donation;
 import server.model.Fundraiser;
 import server.model.User;
+import server.notif.NotificationService;
 import server.repository.UserRepository;
 
 import java.util.ArrayList;
@@ -19,12 +20,17 @@ public class FundraiserService {
     private final ClubService clubService;
     private final BookService bookService;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
     private final AtomicInteger nextFundraiserId;
 
-    public FundraiserService(ClubService clubService, BookService bookService, UserRepository userRepository) {
+    public FundraiserService(ClubService clubService,
+                             BookService bookService,
+                             UserRepository userRepository,
+                             NotificationService notificationService) {
         this.clubService = clubService;
         this.bookService = bookService;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
         this.nextFundraiserId = new AtomicInteger(1);
     }
 
@@ -71,6 +77,9 @@ public class FundraiserService {
                 completeFundraiser(club, fundraiser, book);
             }
 
+            notificationService.sendToUsers(
+                    club.getMembers(),
+                    creator.getUsername() + " created a fundraiser for book " + book.getTitle());
             return Result.success("Fundraiser created.", fundraiser);
         }
     }
@@ -120,6 +129,9 @@ public class FundraiserService {
         synchronized (club) {
             try {
                 double actual = fundraiser.donate(user.getUsername(), amount, user.getWallet());
+                notificationService.sendToUsers(
+                        club.getMembers(),
+                        user.getUsername() + " donated amount " + actual + " to the fundraiser for book " + book.getTitle());
                 if (fundraiser.isComplete()) {
                     completeFundraiser(club, fundraiser, book);
                 }
@@ -135,6 +147,7 @@ public class FundraiserService {
             User member = userRepository.find(username);
             if (member != null && !member.hasBook(book.getID())) {
                 member.addBook(book);
+                notificationService.sendToUser(username, "Book " + book.getTitle() + " has been added to your library.");
             }
         }
         club.clearActiveFundraiser();

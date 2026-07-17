@@ -8,16 +8,21 @@ import server.club.ClubService;
 import server.command.*;
 import server.fundraiser.FundraiserService;
 import server.model.BookLibraryStatus;
+import server.notif.NotificationService;
 import server.progress.ProgressService;
+import server.session.Session;
 import server.session.SessionManager;
 import server.wallet.WalletService;
 
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
 public class CommandDispatcher {
 
     private final Map<String, CommandHandler> commands;
+    private final SessionManager sessionManager;
+    private final NotificationService notificationService;
 
     public CommandDispatcher(
             AuthService authService,
@@ -26,9 +31,12 @@ public class CommandDispatcher {
             ClubService clubService,
             FundraiserService fundraiserService,
             WalletService walletService,
-            SessionManager sessionManager) {
+            SessionManager sessionManager,
+            NotificationService notificationService) {
 
         commands = new HashMap<>();
+        this.sessionManager = sessionManager;
+        this.notificationService = notificationService;
 
         commands.put("register", new RegisterCommand(authService));
 
@@ -90,5 +98,15 @@ public class CommandDispatcher {
         }
 
         return commandHandler.execute(request);
+    }
+
+    public void registerOnlineClient(Request request, PrintWriter writer) {
+        if (request == null) {
+            return;
+        }
+        Session session = sessionManager.getSession(request.getToken());
+        if (session != null) {
+            notificationService.register(session.getUser().getUsername(), writer);
+        }
     }
 }

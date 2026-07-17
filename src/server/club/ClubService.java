@@ -3,6 +3,7 @@ package server.club;
 import common.Result;
 import server.model.Club;
 import server.model.User;
+import server.notif.NotificationService;
 import server.repository.UserRepository;
 
 import java.util.ArrayList;
@@ -16,9 +17,11 @@ public class ClubService {
     private final ConcurrentHashMap<Integer, Club> clubs;
     private final AtomicInteger nextClubId;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
-    public ClubService(UserRepository userRepository) {
+    public ClubService(UserRepository userRepository, NotificationService notificationService) {
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
         this.clubs = new ConcurrentHashMap<>();
         this.nextClubId = new AtomicInteger(1);
     }
@@ -84,6 +87,9 @@ public class ClubService {
 
         try {
             club.addJoinRequest(user.getUsername());
+            notificationService.sendToUser(
+                    club.getOwnerUsername(),
+                    user.getUsername() + " requested to join club " + club.getName());
             return Result.success("Join request sent.");
         } catch (RuntimeException exception) {
             return Result.error(exception.getMessage());
@@ -153,6 +159,7 @@ public class ClubService {
         try {
             club.removeMember(username);
             removed.leaveClub(clubId);
+            notificationService.sendToUser(username, "You were removed from club " + club.getName());
             return Result.success("Member removed.");
         } catch (RuntimeException exception) {
             return Result.error(exception.getMessage());
@@ -192,10 +199,12 @@ public class ClubService {
             if (accepted) {
                 club.acceptMember(username);
                 requester.joinClub(clubId);
+                notificationService.sendToUser(username, "Your join request for club " + club.getName() + " was accepted.");
                 return Result.success("Join request accepted.");
             }
 
             club.denyMember(username);
+            notificationService.sendToUser(username, "Your join request for club " + club.getName() + " was denied.");
             return Result.success("Join request denied.");
         } catch (RuntimeException exception) {
             return Result.error(exception.getMessage());
