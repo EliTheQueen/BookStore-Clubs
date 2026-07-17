@@ -19,6 +19,10 @@ public class BookService {
         return Result.success("Books loaded successfully", bookStore.getBooks());
     }
 
+    public List<Book> getMarketBooks() {
+        return bookStore.getBooks();
+    }
+
     public Result<Void> buyBook(User user, int bookId) {
 
         Book book = findBookById(bookId);

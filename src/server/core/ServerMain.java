@@ -54,7 +54,7 @@ public class ServerMain {
         Runtime.getRuntime().addShutdownHook(new Thread(backupService::shutdown));
 
         DatabaseService databaseService = new DatabaseService(
-                "jdbc:sqlite:data/bookstore.db", userRepository, clubService);
+                "jdbc:sqlite:data/bookstore.db", userRepository, clubService, bookService);
         databaseService.initialize();
         databaseService.startScheduledSave(5);
         Runtime.getRuntime().addShutdownHook(new Thread(databaseService::shutdown));
