@@ -121,7 +121,9 @@ public class ClientMain {
 
         if ("register".equals(command) || "login".equals(command)) {
             put(request, "username", values, 0);
-            put(request, "password", values, 1);
+            if (values.length > 1) {
+                request.put("password", PasswordHasher.sha256(values[1].trim()));
+            }
         } else if ("create_club".equals(command)) {
             put(request, "name", values, 0);
         } else if ("join".equals(command) || "view_club".equals(command)) {

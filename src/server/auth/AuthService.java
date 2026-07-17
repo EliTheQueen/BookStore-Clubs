@@ -28,6 +28,9 @@ public class AuthService {
         if (passwordHash == null || passwordHash.isBlank()) {
             return Result.error("Password hash cannot be empty.");
         }
+        if (passwordHash.length() != 64) {
+            return Result.error("Password must be SHA-256 hash.");
+        }
 
         User user = new User(username.trim(), passwordHash);
 
@@ -48,6 +51,9 @@ public class AuthService {
 
         if (passwordHash == null || passwordHash.isBlank()) {
             return Result.error("Password hash cannot be empty.");
+        }
+        if (passwordHash.length() != 64) {
+            return Result.error("Password must be SHA-256 hash.");
         }
 
         User user = userRepository.find(username.trim());
