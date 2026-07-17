@@ -5,6 +5,8 @@ import common.Result;
 import server.auth.AuthService;
 import server.book.BookService;
 import server.command.*;
+import server.model.BookLibraryStatus;
+import server.progress.ProgressService;
 import server.session.SessionManager;
 import server.wallet.WalletService;
 
@@ -18,6 +20,7 @@ public class CommandDispatcher {
     public CommandDispatcher(
             AuthService authService,
             BookService bookService,
+            ProgressService progressService,
             WalletService walletService,
             SessionManager sessionManager) {
 
@@ -30,12 +33,25 @@ public class CommandDispatcher {
         commands.put("logout", new LogoutCommand(authService));
 
         commands.put("books_market_list", new BooksMarketCommand(bookService, sessionManager));
+        commands.put("list_market_books", new BooksMarketCommand(bookService, sessionManager));
 
         commands.put("book_buy", new BookBuyCommand(bookService, sessionManager));
+        commands.put("buy_book", new BookBuyCommand(bookService, sessionManager));
 
         commands.put("account_charge", new ChargeCommand(walletService, sessionManager));
+        commands.put("charge_account", new ChargeCommand(walletService, sessionManager));
 
         commands.put("balance_show", new BalanceCommand(walletService, sessionManager));
+        commands.put("show_balance", new BalanceCommand(walletService, sessionManager));
+
+        commands.put("submit_progress", new SubmitProgressCommand(progressService, sessionManager));
+
+        commands.put("list_not_read_library", new ListLibraryCommand(
+                progressService, sessionManager, BookLibraryStatus.BookStatus.NOT_READ));
+        commands.put("list_reading_library", new ListLibraryCommand(
+                progressService, sessionManager, BookLibraryStatus.BookStatus.READING));
+        commands.put("list_read_library", new ListLibraryCommand(
+                progressService, sessionManager, BookLibraryStatus.BookStatus.READ));
     }
 
     public Result<?> dispatch(Request request) {
