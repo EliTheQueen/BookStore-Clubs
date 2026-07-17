@@ -120,4 +120,19 @@ public class Club implements Serializable {
     public synchronized List<ClubComment> getComments() {
         return new ArrayList<>(comments);
     }
+
+    @Override
+    public synchronized String toString() {
+        List<String> commentLines = new ArrayList<>();
+        for (ClubComment comment : comments) {
+            commentLines.add(comment.toDisplayString());
+        }
+
+        return "ID: " + id
+                + " / Name: " + name
+                + " / Owner: " + ownerUsername
+                + " / Members: " + members
+                + " / Pending Requests: " + pendingRequests
+                + " / Comments: " + commentLines;
+    }
 }

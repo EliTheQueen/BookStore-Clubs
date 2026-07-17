@@ -142,6 +142,8 @@ public class ClientMain {
         } else if ("lend_book".equals(command)) {
             put(request, "bookId", values, 0);
             put(request, "username", values, 1);
+        } else if ("accept_lend_request".equals(command) || "deny_lend_request".equals(command)) {
+            put(request, "requestId", values, 0);
         } else if ("add_comment".equals(command)) {
             put(request, "text", values, 0);
         }

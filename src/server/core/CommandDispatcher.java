@@ -82,6 +82,9 @@ public class CommandDispatcher {
         commands.put("add_comment", new AddCommentCommand(clubService, sessionManager));
         commands.put("list_comments", new ListCommentsCommand(clubService, sessionManager));
         commands.put("lend_book", new LendBookCommand(lendingService, sessionManager));
+        commands.put("accept_lend_request", new AnswerLendRequestCommand(lendingService, sessionManager, true));
+        commands.put("deny_lend_request", new AnswerLendRequestCommand(lendingService, sessionManager, false));
+        commands.put("list_lend_requests", new ListLendRequestsCommand(lendingService, sessionManager));
     }
 
     public Result<?> dispatch(Request request) {
