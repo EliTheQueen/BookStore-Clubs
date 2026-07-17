@@ -1,7 +1,9 @@
 package server.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class Club implements Serializable {
@@ -11,6 +13,7 @@ public class Club implements Serializable {
     private Set<String> members;
     private Set<String> pendingRequests;
     private Fundraiser activeFundraiser;
+    private List<ClubComment> comments;
 
     public  Club(int id, String name, String ownerUsername) {
         if (id <= 0) throw  new IllegalArgumentException("id must be positive");
@@ -23,6 +26,7 @@ public class Club implements Serializable {
         members = new HashSet<String>();
         members.add(ownerUsername);
         pendingRequests = new HashSet<String>();
+        comments = new ArrayList<>();
     }
 
     public boolean isOwner(String ownerUsername) {
@@ -67,6 +71,13 @@ public class Club implements Serializable {
         members.remove(memberUsername);
     }
 
+    public synchronized void addComment(String username, String text) {
+        if (!members.contains(username)) {
+            throw new IllegalArgumentException("Only club members can comment");
+        }
+        comments.add(new ClubComment(username, text));
+    }
+
     public synchronized void setActiveFundraiser(Fundraiser fundraiser) {
         if (fundraiser == null) {
             throw new IllegalArgumentException("Fundraiser cannot be null");
@@ -104,5 +115,9 @@ public class Club implements Serializable {
     }
     public Set<String> getPendingRequests() {
         return new HashSet<>(pendingRequests);
+    }
+
+    public synchronized List<ClubComment> getComments() {
+        return new ArrayList<>(comments);
     }
 }

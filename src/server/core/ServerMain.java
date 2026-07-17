@@ -5,6 +5,7 @@ import server.backup.BackupService;
 import server.book.BookService;
 import server.club.ClubService;
 import server.fundraiser.FundraiserService;
+import server.lending.LendingService;
 import server.model.BookStore;
 import server.notif.NotificationService;
 import server.progress.ProgressService;
@@ -43,6 +44,7 @@ public class ServerMain {
 
         FundraiserService fundraiserService = new FundraiserService(
                 clubService, bookService, userRepository, notificationService);
+        LendingService lendingService = new LendingService(userRepository, bookService, notificationService);
 
         BackupService backupService = new BackupService(
                 userRepository, clubService, Paths.get("data", "backup.ser"));
@@ -52,7 +54,7 @@ public class ServerMain {
 
         CommandDispatcher dispatcher = new CommandDispatcher(
                 authService, bookService, progressService, clubService, fundraiserService,
-                walletService, sessionManager, notificationService);
+                lendingService, walletService, sessionManager, notificationService);
 
         Thread udpThread = new Thread(new UdpStatusServer(UDP_PORT));
         udpThread.setDaemon(true);

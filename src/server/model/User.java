@@ -42,6 +42,10 @@ public class User implements Serializable {
         return library.get(bookId);
     }
 
+    public synchronized LibraryItem removeBook(int bookId) {
+        return library.remove(bookId);
+    }
+
     public synchronized void joinClub(int clubId){
         clubIds.add(clubId);
     }

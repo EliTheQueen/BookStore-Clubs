@@ -7,6 +7,7 @@ import server.book.BookService;
 import server.club.ClubService;
 import server.command.*;
 import server.fundraiser.FundraiserService;
+import server.lending.LendingService;
 import server.model.BookLibraryStatus;
 import server.notif.NotificationService;
 import server.progress.ProgressService;
@@ -30,6 +31,7 @@ public class CommandDispatcher {
             ProgressService progressService,
             ClubService clubService,
             FundraiserService fundraiserService,
+            LendingService lendingService,
             WalletService walletService,
             SessionManager sessionManager,
             NotificationService notificationService) {
@@ -77,6 +79,9 @@ public class CommandDispatcher {
         commands.put("create_fundraiser", new CreateFundraiserCommand(fundraiserService, sessionManager));
         commands.put("view_fundraiser_progress", new ViewFundraiserProgressCommand(fundraiserService, sessionManager));
         commands.put("donate", new DonateCommand(fundraiserService, sessionManager));
+        commands.put("add_comment", new AddCommentCommand(clubService, sessionManager));
+        commands.put("list_comments", new ListCommentsCommand(clubService, sessionManager));
+        commands.put("lend_book", new LendBookCommand(lendingService, sessionManager));
     }
 
     public Result<?> dispatch(Request request) {

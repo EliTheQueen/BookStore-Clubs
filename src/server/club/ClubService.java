@@ -166,6 +166,40 @@ public class ClubService {
         }
     }
 
+    public Result<Void> addComment(User user, int clubId, String text) {
+        Club club = clubs.get(clubId);
+        if (club == null) {
+            return Result.error("Club not found.");
+        }
+        if (user == null || !club.isMember(user.getUsername())) {
+            return Result.error("You are not a member of this club.");
+        }
+
+        try {
+            club.addComment(user.getUsername(), text);
+            return Result.success("Comment added.");
+        } catch (RuntimeException exception) {
+            return Result.error(exception.getMessage());
+        }
+    }
+
+    public Result<List<String>> listComments(User user, int clubId) {
+        Club club = clubs.get(clubId);
+        if (club == null) {
+            return Result.error("Club not found.");
+        }
+        if (user == null || !club.isMember(user.getUsername())) {
+            return Result.error("You are not a member of this club.");
+        }
+
+        List<String> result = new ArrayList<>();
+        for (server.model.ClubComment comment : club.getComments()) {
+            result.add(comment.toDisplayString());
+        }
+
+        return Result.success("Comments loaded.", result);
+    }
+
     public Club findClub(int clubId) {
         return clubs.get(clubId);
     }
