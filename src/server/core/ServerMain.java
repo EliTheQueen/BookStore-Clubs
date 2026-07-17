@@ -20,6 +20,7 @@ import java.nio.file.Paths;
 public class ServerMain {
 
     private static final int PORT = 8082;
+    private static final int UDP_PORT = 8083;
 
     public static void main(String[] args) throws IOException {
 
@@ -52,6 +53,10 @@ public class ServerMain {
         CommandDispatcher dispatcher = new CommandDispatcher(
                 authService, bookService, progressService, clubService, fundraiserService,
                 walletService, sessionManager, notificationService);
+
+        Thread udpThread = new Thread(new UdpStatusServer(UDP_PORT));
+        udpThread.setDaemon(true);
+        udpThread.start();
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.println("Server started on port " + PORT);
