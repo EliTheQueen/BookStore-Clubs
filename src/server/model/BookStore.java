@@ -56,7 +56,7 @@ public class BookStore {
         int end = item.indexOf(",", start);
         if (end == -1) end = item.length();
 
-        return item.substring(start, end).trim();
+        return item.substring(start, end).replace("]", "").trim();
     }
 
     private int getInt(String item, String key) {
