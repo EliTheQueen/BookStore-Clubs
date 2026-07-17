@@ -4,15 +4,26 @@ import common.Result;
 import server.backup.BackupService;
 import server.book.BookService;
 import server.club.ClubService;
+import server.core.CommandDispatcher;
 import server.fundraiser.FundraiserService;
+import server.lending.LendingService;
 import server.model.Book;
 import server.model.BookStore;
 import server.model.Club;
 import server.model.Fundraiser;
 import server.model.User;
 import server.notif.NotificationService;
+import server.progress.ProgressService;
 import server.repository.UserRepository;
+import server.session.Session;
+import server.session.SessionManager;
+import server.auth.AuthService;
+import server.wallet.WalletService;
 
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -26,6 +37,8 @@ public class ConcurrencyTest {
         testConcurrentBuy();
         testConcurrentDonateAndCompletion();
         testBackupDuringChanges();
+        testUdpNotification();
+        testSessionCleanup();
         System.out.println("All concurrency tests passed.");
     }
 
@@ -131,6 +144,52 @@ public class ConcurrencyTest {
 
         assertTrue(!restoredUsers.findAll().isEmpty(), "Backup restore must load users");
         Files.deleteIfExists(backupPath);
+    }
+
+    private static void testUdpNotification() throws Exception {
+        NotificationService notificationService = new NotificationService();
+        try (DatagramSocket socket = new DatagramSocket()) {
+            socket.setSoTimeout(1000);
+            notificationService.registerUdp("udp-user", InetAddress.getByName("127.0.0.1"), socket.getLocalPort());
+            notificationService.sendToUser("udp-user", "hello over udp");
+
+            byte[] buffer = new byte[1024];
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+            socket.receive(packet);
+            String message = new String(packet.getData(), 0, packet.getLength());
+            assertTrue(message.contains("hello over udp"), "UDP notification must be received");
+        } catch (SocketException exception) {
+            System.out.println("UDP notification test skipped by environment: " + exception.getMessage());
+        }
+    }
+
+    private static void testSessionCleanup() {
+        UserRepository userRepository = new UserRepository();
+        SessionManager sessionManager = new SessionManager();
+        NotificationService notificationService = new NotificationService();
+        BookStore bookStore = new BookStore();
+        BookService bookService = new BookService(bookStore);
+        ClubService clubService = new ClubService(userRepository, notificationService);
+        FundraiserService fundraiserService =
+                new FundraiserService(clubService, bookService, userRepository, notificationService);
+        LendingService lendingService = new LendingService(userRepository, bookService, notificationService);
+
+        User user = save(userRepository, "cleanup-user");
+        Session session = sessionManager.createSession(user);
+
+        CommandDispatcher dispatcher = new CommandDispatcher(
+                new AuthService(userRepository, sessionManager),
+                bookService,
+                new ProgressService(bookStore),
+                clubService,
+                fundraiserService,
+                lendingService,
+                new WalletService(),
+                sessionManager,
+                notificationService);
+
+        dispatcher.cleanupDisconnectedClient(session.getToken());
+        assertTrue(sessionManager.getSession(session.getToken()) == null, "Disconnect cleanup must remove session");
     }
 
     private static User save(UserRepository repository, String username) {
