@@ -198,20 +198,28 @@ public class ClientMain {
     }
 
     private static String extractDataToken(String response) {
-        String marker = "\"data\":\"";
-        int start = response.indexOf(marker);
-        if (start == -1 || !response.contains("\"status\":\"success\"")) {
+
+        if (!response.contains("\"status\":\"success\"")
+                || !response.contains("\"message\":\"Login successful.\"")) {
             return null;
         }
+
+        String marker = "\"data\":\"";
+
+        int start = response.indexOf(marker);
+
+        if (start == -1) {
+            return null;
+        }
+
         start += marker.length();
+
         int end = response.indexOf("\"", start);
+
         if (end == -1) {
             return null;
         }
-        String value = response.substring(start, end);
-        if (value.length() < 20) {
-            return null;
-        }
-        return value;
+
+        return response.substring(start, end);
     }
 }
