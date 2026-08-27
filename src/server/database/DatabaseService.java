@@ -65,12 +65,17 @@ public class DatabaseService {
 
         try (Connection connection = DriverManager.getConnection(url)) {
             connection.setAutoCommit(false);
-            clearTables(connection);
-            saveBooks(connection);
-            saveUsers(connection);
-            saveClubs(connection);
-            saveFundraisers(connection);
-            connection.commit();
+            try {
+                clearTables(connection);
+                saveBooks(connection);
+                saveUsers(connection);
+                saveClubs(connection);
+                saveFundraisers(connection);
+                connection.commit();
+            } catch (SQLException e) {
+                connection.rollback();
+                throw e;
+            }
         } catch (SQLException exception) {
             System.out.println("Database snapshot failed: " + exception.getMessage());
         }
